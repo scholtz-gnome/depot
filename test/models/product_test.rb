@@ -36,20 +36,23 @@ class ProductTest < ActiveSupport::TestCase
     ok = %w[fred.gif fred.jpg fred.png FRED.JPG FRED.Jpg http://a.b.c/x/y/z/fred.gif]
     bad = %w[fred.doc fred.gif/more fred.gif.more]
 
-    ok.each do |image_url|
-      assert(new_product(image_url).valid?, "#{image_url} shouldn't be invalid")
-    end
+    ok.each { |image_url| assert(new_product(image_url).valid?, "#{image_url} shouldn't be invalid") }
 
-    bad.each do |image_url|
-      assert(new_product(image_url).invalid?, "#{image_url} shouldn't be valid")
-    end
+    bad.each { |image_url| assert(new_product(image_url).invalid?, "#{image_url} shouldn't be valid") }
   end
 
   test 'product is not valid without a unique title' do
-    product =
-      Product.new(title: products(:ruby).title, description: 'yyy', price: 1, image_url: 'fred.gif')
+    product = Product.new(title: products(:ruby).title, description: 'yyy', price: 1, image_url: 'fred.gif')
 
     assert(product.invalid?)
     assert_equal(['has already been taken'], product.errors[:title])
+  end
+
+  test 'product title is not valid if shorter than 10 characters' do
+    product =
+      Product.new(title: '123456789', description: products(:one).description, price: products(:one).price, image_url: products(:one).image_url)
+
+    assert(product.invalid?)
+    assert_equal(['Title must be at least 10 characters long'], product.errors[:title])
   end
 end
